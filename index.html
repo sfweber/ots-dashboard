@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analizador de OpenTimestamps</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <h1>Analizador de <span class="brand-dot">OpenTimestamps</span></h1>
+      <p class="sub">Soltá un archivo <code>.ots</code> y entendé qué prueba: huella → calendars → Bitcoin → fecha.</p>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+
+      <div id="dropzone" class="dropzone disabled" title="Soltá o elegí archivos .ots">
+        <div class="dz-icon">📥</div>
+        <div class="dz-title">Soltá tus archivos <code>.ots</code> acá</div>
+        <div class="dz-sub">o hacé clic para elegirlos. Podés soltar <b>varios</b> a la vez.</div>
+        <div class="dz-sub small">Opcional: soltá también el <b>documento original</b> para comprobar que su huella coincide.</div>
+        <input type="file" id="file-input" multiple style="display:none">
+      </div>
+      <div id="lib-status">Cargando librerías…</div>
+
+      <div id="empty-state">
+        <div class="empty-hints">
+          <div class="hint-card"><div class="h">🔒 100% local</div><div class="d">Tus archivos no se suben: la huella se calcula en tu navegador.</div></div>
+          <div class="hint-card"><div class="h">🌳 Dos vistas</div><div class="d">Simple (infografía) y Detallado (el árbol de Merkle completo).</div></div>
+          <div class="hint-card"><div class="h">⛓️ Verificable</div><div class="d">Confirmá contra Bitcoin y copiá los IDs para chequear en mempool.space.</div></div>
+        </div>
+      </div>
+
+      <div id="toolbar" class="toolbar" style="display:none">
+        <div class="toggle" role="group" aria-label="Modo de vista">
+          <button id="view-simple" class="active" type="button">Simple</button>
+          <button id="view-detailed" type="button">Detallado</button>
+        </div>
+        <div class="spacer"></div>
+        <button id="btn-clear" class="btn ghost" type="button">🗑️ Limpiar</button>
+      </div>
+
+      <div id="results"></div>
+
+    </div>
+  </main>
+
+  <div id="toast"></div>
+
+  <footer class="site-footer">
+    <div class="container">
+      Herramienta educativa por <strong>Federico Weber</strong> · parsea <code>.ots</code> en el navegador con
+      <a href="https://opentimestamps.org" target="_blank" rel="noopener">OpenTimestamps</a> ·
+      verificación contra <a href="https://mempool.space" target="_blank" rel="noopener">mempool.space</a>
+    </div>
+  </footer>
+
+  <!-- Librerías de terceros (locales, sin red) -->
+  <script src="assets/opentimestamps.min.js"></script>
+  <script src="assets/crypto-js.js"></script>
+  <script src="assets/moment.min.js"></script>
+  <script src="assets/moment-timezone.min.js"></script>
+  <!-- Módulos propios (orden importa) -->
+  <script src="js/util.js"></script>
+  <script src="js/parser.js"></script>
+  <script src="js/hash.js"></script>
+  <script src="js/mempool.js"></script>
+  <script src="js/render-tree.js"></script>
+  <script src="js/render-simple.js"></script>
+  <script src="js/render-detailed.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
