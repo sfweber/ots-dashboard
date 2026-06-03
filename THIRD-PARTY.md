@@ -8,8 +8,6 @@ Cada una conserva su licencia original y pertenece a sus respectivos autores.
 |---|---|---|---|---|
 | `assets/opentimestamps.min.js` | javascript-opentimestamps | 0.4.9 | **LGPL-3.0** | https://github.com/opentimestamps/javascript-opentimestamps |
 | `assets/crypto-js.js` | CryptoJS | — | **MIT** | https://github.com/brix/crypto-js |
-| `assets/moment.min.js` | Moment.js | — | **MIT** | https://github.com/moment/moment |
-| `assets/moment-timezone.min.js` | Moment Timezone | 2012–2022 data | **MIT** | https://github.com/moment/moment-timezone |
 
 El **código propio** de este repositorio (todo lo que está fuera de `assets/`) está
 licenciado bajo MIT — ver [LICENSE](LICENSE).

@@ -149,13 +149,15 @@
       var earliest = model.branches.filter(function (b) { return b.blockHeight === blk; })[0];
       var online = earliest && earliest.online;
       var date = (online === 'ok' && root.OtsMempool) ? root.OtsMempool.formatDate(earliest.blockTime) : null;
-      var cuando = date ? 'el ' + date : 'al minarse el bloque ' + blk;
+      var msg = date
+        ? 'Queda probado que el documento ya existía el ' + date + ', en el bloque ' + blk + '.'
+        : 'Queda probado que el documento ya existía al minarse el bloque ' + blk + '.';
 
       if (online === 'ok' && earliest.merkleMatches) {
         // verificado contra la cadena
         children.push(U.el('div', { class: 'result confirmed' }, [
           U.el('div', { class: 'big' }, '✅ Verificado en Bitcoin'),
-          U.el('div', null, 'Queda probado que el documento ya existía ' + cuando + ' (bloque ' + blk + ').'),
+          U.el('div', null, msg),
           model.status === 'partial' ? U.el('div', { class: 'muted small' }, 'Alcanza con una rama anclada; las demás siguen pendientes.') : null
         ]));
       } else if (online === 'ok' && !earliest.merkleMatches) {

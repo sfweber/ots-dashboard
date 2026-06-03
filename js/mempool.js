@@ -103,19 +103,23 @@
     return Promise.all(jobs).then(function () { return model; });
   }
 
-  // Formatea un unix timestamp (segundos) a fecha legible con zona local.
+  // "UTC-3" / "UTC+5:30" a partir de un offset en minutos.
+  function offsetLabel(mins) {
+    var sign = mins < 0 ? '-' : '+';
+    var h = Math.floor(Math.abs(mins) / 60), mm = Math.abs(mins) % 60;
+    return 'UTC' + sign + h + (mm ? ':' + (mm < 10 ? '0' + mm : mm) : '');
+  }
+
+  // Formatea un unix timestamp (segundos) en la zona local del navegador.
+  // Usa Date nativo: las reglas de huso (incl. horario de verano) las pone el SO,
+  // siempre actualizadas y para cualquier año.
   function formatDate(unixSeconds) {
     if (unixSeconds == null) return null;
-    if (root.moment) {
-      try {
-        var m = root.moment(unixSeconds * 1000);
-        if (root.moment.tz) {
-          try { return m.tz(root.moment.tz.guess()).format('YYYY-MM-DD HH:mm z'); } catch (e) {}
-        }
-        return m.format('YYYY-MM-DD HH:mm');
-      } catch (e) {}
-    }
-    return new Date(unixSeconds * 1000).toISOString().replace('T', ' ').slice(0, 16) + ' UTC';
+    var d = new Date(unixSeconds * 1000);
+    var p = function (n) { return n < 10 ? '0' + n : '' + n; };
+    var fecha = d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) +
+      ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+    return fecha + ' (' + offsetLabel(-d.getTimezoneOffset()) + ', hora local)';
   }
 
   root.OtsMempool = {

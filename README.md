@@ -72,7 +72,7 @@ js/
 ## Créditos y licencias
 
 - Código propio: **MIT** — ver [LICENSE](LICENSE).
-- Librerías incluidas (OpenTimestamps, CryptoJS, Moment) — ver [THIRD-PARTY.md](THIRD-PARTY.md).
+- Librerías incluidas (OpenTimestamps, CryptoJS) — ver [THIRD-PARTY.md](THIRD-PARTY.md).
 - Construido sobre [OpenTimestamps](https://opentimestamps.org) y verificación contra
   [mempool.space](https://mempool.space).
 
