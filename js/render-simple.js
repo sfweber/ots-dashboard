@@ -45,7 +45,7 @@
 
   function hashStage(model) {
     return stage('🔑', 'Su hash (' + (model.hashAlgo || 'sha256').toUpperCase() + ')', [
-      U.hexField('Huella', model.fileHash, { head: 16, tail: 12 }),
+      U.hexField('Hash', model.fileHash, { head: 16, tail: 12 }),
       U.el('div', { class: 'muted small' }, 'Un hash único del archivo. Si cambiás una sola coma, cambia por completo.')
     ], 'El navegador calcula este hash localmente: tu archivo nunca se sube a ningún lado.');
   }
