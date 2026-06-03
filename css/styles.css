@@ -184,6 +184,10 @@ a.mono:hover { text-decoration: underline; }
 .result.confirmed { background: var(--green-bg); }
 .result.confirmed .big { font-size: 1.2rem; font-weight: 800; color: var(--green); margin-bottom: 2px; }
 .result.pending { background: var(--amber-bg); color: #8a5a00; }
+.result.claim { background: #eef1f7; }
+.result.claim .big { font-size: 1.12rem; font-weight: 800; color: var(--ink); margin-bottom: 2px; }
+.result.bad { background: var(--red-bg); }
+.result.bad .big { font-size: 1.18rem; font-weight: 800; color: var(--red); margin-bottom: 2px; }
 
 /* ---------- detailed view: tree (lista vertical con espinazo) ---------- */
 .detailed-view { font-size: .94rem; padding-top: 6px; }

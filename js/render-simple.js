@@ -141,27 +141,40 @@
 
   function resultStage(model) {
     var children = [];
+    var blk = model.earliestBlock;
     if (model.status === 'pending') {
       children.push(U.el('div', { class: 'result pending' },
         '⏳ Todavía sin anclar en Bitcoin. La prueba existe pero depende de los calendars hasta que se confirme (suele tardar unas horas).'));
     } else {
-      var earliest = model.branches.filter(function (b) { return b.blockHeight === model.earliestBlock; })[0];
-      var datePart = '';
-      if (earliest && earliest.online === 'ok' && root.OtsMempool) {
-        var d = root.OtsMempool.formatDate(earliest.blockTime);
-        if (d) datePart = ' → ' + d;
+      var earliest = model.branches.filter(function (b) { return b.blockHeight === blk; })[0];
+      var online = earliest && earliest.online;
+      var date = (online === 'ok' && root.OtsMempool) ? root.OtsMempool.formatDate(earliest.blockTime) : null;
+      var cuando = date ? 'el ' + date : 'al minarse el bloque ' + blk;
+
+      if (online === 'ok' && earliest.merkleMatches) {
+        // verificado contra la cadena
+        children.push(U.el('div', { class: 'result confirmed' }, [
+          U.el('div', { class: 'big' }, '✅ Verificado en Bitcoin'),
+          U.el('div', null, 'Queda probado que el documento ya existía ' + cuando + ' (bloque ' + blk + ').'),
+          model.status === 'partial' ? U.el('div', { class: 'muted small' }, 'Alcanza con una rama anclada; las demás siguen pendientes.') : null
+        ]));
+      } else if (online === 'ok' && !earliest.merkleMatches) {
+        // se verificó pero NO coincide
+        children.push(U.el('div', { class: 'result bad' }, [
+          U.el('div', { class: 'big' }, '⚠️ No coincide con Bitcoin'),
+          U.el('div', null, 'La merkle root del .ots no coincide con la del bloque ' + blk + ' real: el sello no se pudo confirmar.')
+        ]));
+      } else {
+        // aún NO verificado contra la cadena → es una afirmación del archivo, sin tilde verde
+        children.push(U.el('div', { class: 'result claim' }, [
+          U.el('div', { class: 'big' }, 'Anclado en el bloque ' + blk + ' — según el .ots'),
+          U.el('div', null, 'El archivo afirma que el documento ya existía cuando se minó el bloque ' + blk + '.'),
+          U.el('div', { class: 'muted small' }, 'Todavía sin comprobar contra la cadena. Pulsá "Verificar contra Bitcoin" para confirmarlo y traer la fecha real.')
+        ]));
       }
-      children.push(U.el('div', { class: 'result confirmed' }, [
-        U.el('div', { class: 'big' }, '✅ Probado en Bitcoin'),
-        U.el('div', null, 'El documento existía a más tardar en el bloque ' + model.earliestBlock + datePart + '.'),
-        model.status === 'partial'
-          ? U.el('div', { class: 'muted small' }, 'Algunas ramas siguen pendientes, pero con una anclada alcanza.')
-          : null,
-        !datePart ? U.el('div', { class: 'muted small' }, 'Pulsá "Verificar contra Bitcoin" para traer la fecha real y confirmar contra la cadena.') : null
-      ]));
     }
     return stage('🏁', 'Qué prueba', children,
-      'La fecha probada es la del bloque MÁS ANTIGUO: es la fecha más temprana que se puede demostrar. Los bloques posteriores son redundancia, no una fecha "mejor".');
+      'La fecha probada es la del bloque MÁS ANTIGUO anclado: es la fecha más temprana que se puede demostrar. Los bloques posteriores son redundancia, no una fecha "mejor".');
   }
 
   // model -> nodo DOM de la vista Simple.
