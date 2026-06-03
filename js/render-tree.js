@@ -1,11 +1,11 @@
 /*
  * render-tree.js — Visualización ARTÍSTICA y CONCEPTUAL del camino de Merkle
- * desde tu huella (hoja) hasta la raíz OTS (lo que va al OP_RETURN).
+ * desde tu hash (hoja) hasta la raíz OTS (lo que va al OP_RETURN).
  *
  * Importante: el .ots NO trae el árbol completo (miles de hojas), sino el
  * "authentication path": tu hoja + UN hermano por nivel + la raíz. Eso es lo
  * que se dibuja (técnica estándar de pruebas de Merkle / SPV). Cada hermano es
- * un subárbol colapsado = "otras huellas que no necesitás conocer".
+ * un subárbol colapsado = "otros hashes que no necesitás conocer".
  *
  * Datos: se reconstruyen del recorrido model.rawTimestamp → nodo cuyo result == otsRoot.
  * Cada `sha256` cierra un nivel; los `append`/`prepend` previos son el/los hermano(s)
@@ -119,7 +119,7 @@
         sg.appendChild(svgEl('polygon', {
           points: sx[i] + ',' + apexY + ' ' + (sx[i] - hw) + ',' + baseY + ' ' + (sx[i] + hw) + ',' + baseY,
           class: 'sib-tri'
-        }, svgEl('title', null, 'Subárbol vecino (otras huellas): ' + (lvl.siblings[0].value || ''))));
+        }, svgEl('title', null, 'Subárbol vecino (otros hashes): ' + (lvl.siblings[0].value || ''))));
         if (gg > 0.62) {
           sg.appendChild(svgEl('text', { x: sx[i], y: baseY + 12, class: 'sib-label', 'text-anchor': 'middle' }, (i === N - 1) ? 'gran subárbol' : 'subárbol'));
         }
@@ -132,7 +132,7 @@
       var ny = y(k), isLeaf = k === 0, isRoot = k === N;
       var ng = svgEl('g', { class: 'path-node' + (isLeaf ? ' leaf' : '') + (isRoot ? ' root' : ''), style: 'animation-delay:' + ((k * 0.09).toFixed(2)) + 's' });
       ng.appendChild(svgEl('circle', { cx: rx[k], cy: ny, r: (isLeaf || isRoot) ? 9 : 4.5, class: 'node-dot' },
-        svgEl('title', null, (isLeaf ? 'Tu huella: ' : isRoot ? 'Raíz OTS: ' : 'Nodo intermedio: ') + nodeResult(k))));
+        svgEl('title', null, (isLeaf ? 'Tu hash: ' : isRoot ? 'Raíz OTS: ' : 'Nodo intermedio: ') + nodeResult(k))));
       if (isLeaf) ng.appendChild(svgEl('text', { x: rx[k], y: ny + 30, class: 'node-label leaf-label', 'text-anchor': 'middle' }, '📄 vos · ' + U.shortHex(model.fileHash, 6, 4)));
       if (isRoot) ng.appendChild(svgEl('text', { x: rx[k], y: ny - 16, class: 'node-label root-label', 'text-anchor': 'middle' }, '📌 raíz OTS · ' + U.shortHex(otsRoot, 6, 4)));
       svg.appendChild(ng);
@@ -141,7 +141,7 @@
     return U.el('div', { class: 'tree-viz-wrap' }, [
       svg,
       U.el('div', { class: 'tree-viz-note' },
-        'El árbol converge hacia la raíz: cada ▽ es un subárbol (otras huellas) que se fusiona con tu camino. Cuanto más arriba, más grande el subárbol — el de más arriba abarca buena parte del árbol. Abajo hay miles de hojas; la línea naranja sos vos, de tu hoja a la raíz.')
+        'El árbol converge hacia la raíz: cada ▽ es un subárbol (otros hashes) que se fusiona con tu camino. Cuanto más arriba, más grande el subárbol — el de más arriba abarca buena parte del árbol. Abajo hay miles de hojas; la línea naranja sos vos, de tu hoja a la raíz.')
     ]);
   }
 

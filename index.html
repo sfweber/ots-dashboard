@@ -10,7 +10,7 @@
   <header class="site-header">
     <div class="container">
       <h1>Analizador de <span class="brand-dot">OpenTimestamps</span></h1>
-      <p class="sub">Soltá un archivo <code>.ots</code> y entendé qué prueba: huella → calendars → Bitcoin → fecha.</p>
+      <p class="sub">Soltá un archivo <code>.ots</code> y entendé qué prueba: hash → calendars → Bitcoin → fecha.</p>
     </div>
   </header>
 
@@ -21,14 +21,14 @@
         <div class="dz-icon">📥</div>
         <div class="dz-title">Soltá tus archivos <code>.ots</code> acá</div>
         <div class="dz-sub">o hacé clic para elegirlos. Podés soltar <b>varios</b> a la vez.</div>
-        <div class="dz-sub small">Opcional: soltá también el <b>documento original</b> para comprobar que su huella coincide.</div>
+        <div class="dz-sub small">Opcional: soltá también el <b>documento original</b> para comprobar que su hash coincide.</div>
         <input type="file" id="file-input" multiple style="display:none">
       </div>
       <div id="lib-status">Cargando librerías…</div>
 
       <div id="empty-state">
         <div class="empty-hints">
-          <div class="hint-card"><div class="h">🔒 100% local</div><div class="d">Tus archivos no se suben: la huella se calcula en tu navegador.</div></div>
+          <div class="hint-card"><div class="h">🔒 100% local</div><div class="d">Tus archivos no se suben: el hash se calcula en tu navegador.</div></div>
           <div class="hint-card"><div class="h">🌳 Dos vistas</div><div class="d">Simple (infografía) y Detallado (el árbol de Merkle completo).</div></div>
           <div class="hint-card"><div class="h">⛓️ Verificable</div><div class="d">Confirmá contra Bitcoin y copiá los IDs para chequear en mempool.space.</div></div>
         </div>

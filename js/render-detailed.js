@@ -20,7 +20,7 @@
     if (!MODEL || !root.OtsTree) return null;
     var model = MODEL; // capturar en el closure (multi-archivo: no depender del MODEL global al hacer click)
     var det = U.el('details', { class: 'tree-viz' });
-    det.appendChild(U.el('summary', null, '¿Cómo llega tu huella a esta raíz?'));
+    det.appendChild(U.el('summary', null, '¿Cómo llega tu hash a esta raíz?'));
     var lazy = false;
     det.addEventListener('toggle', function () {
       if (det.open && !lazy) { lazy = true; det.appendChild(root.OtsTree.render(model, otsRoot)); }
@@ -76,7 +76,7 @@
         // el camino sigue después: es solo el punto de registro del calendar, ya superado
         return milestone('checkpoint', '📅 Calendar ' + U.calendarName(att.param) + ' · registro',
           [U.el('span', { class: 'mono small' }, att.param)],
-          'Punto donde el calendar recibió tu huella y se comprometió a anclarla. El camino continúa hasta Bitcoin: ya está anclado.');
+          'Punto donde el calendar recibió tu hash y se comprometió a anclarlo. El camino continúa hasta Bitcoin: ya está anclado.');
       }
       // es el final del camino: genuinamente sin anclar todavía
       return milestone('pending', '⏳ Pendiente — sin anclar todavía',
@@ -143,7 +143,7 @@
         });
         flushSteps(steps, container, isBitcoin
           ? '📦 prueba de inclusión en el bloque (' + levelsIn(steps) + ' niveles)'
-          : '🔑 preparar tu huella y enviarla al calendar');
+          : '🔑 preparar tu hash y enviarlo al calendar');
         var continues = !!(tsNode.ops && tsNode.ops.length);
         tsNode.attestations.forEach(function (a) { container.appendChild(attestationBox(a, continues)); });
       }
@@ -159,7 +159,7 @@
       } else if (ops.length === 1) {
         // si este op deja el OP_RETURN, el mensaje de ENTRADA (tsNode.result) es la raíz OTS
         if (isOpReturnPrepend(ops[0])) {
-          flushSteps(steps, container, '🌳 subir el árbol del calendar (tu huella + miles más)');
+          flushSteps(steps, container, '🌳 subir el árbol del calendar (tu hash + miles más)');
           container.appendChild(otsRootMarker(tsNode.result));
           var tb = treeButton(tsNode.result);
           if (tb) container.appendChild(tb);
@@ -192,7 +192,7 @@
     root_.appendChild(U.el('div', { class: 'tree-start' }, [
       U.el('span', { class: 'op-chip op-hash' }, (model.hashAlgo || 'sha256')),
       U.el('span', { class: 'mono', title: model.fileHash }, U.shortHex(model.fileHash, 12, 10)),
-      U.el('span', { class: 'muted small' }, ' (huella del documento)')
+      U.el('span', { class: 'muted small' }, ' (hash del documento)')
     ]));
     var body = U.el('div', { class: 'tree-body' });
     root_.appendChild(body);

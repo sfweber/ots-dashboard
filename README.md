@@ -2,24 +2,23 @@
 
 Herramienta web **estática** (un solo HTML, sin servidor, sin build, sin instalar nada) para
 **entender y verificar** archivos `.ots` ([OpenTimestamps](https://opentimestamps.org)). Tirás un
-`.ots` y muestra, en lenguaje llano, qué prueba — de la huella de tu documento hasta el bloque de
+`.ots` y muestra, en lenguaje llano, qué prueba — del hash de tu documento hasta el bloque de
 Bitcoin, con una visualización del árbol de Merkle.
 
 Pensada como material educativo (Diplomatura/Microcredencial en Blockchain), apta para proyectar.
 
-> 🔒 **Privacidad:** la huella se calcula en tu navegador. Tus archivos **no se suben** a ningún
+> 🔒 **Privacidad:** el hash se calcula en tu navegador. Tus archivos **no se suben** a ningún
 > lado. La única salida a internet es opcional (botón "Verificar contra Bitcoin") y solo manda
 > números de bloque a mempool.space — nunca tu archivo.
 
 ## 🌐 Demo
 
-Si está publicado con GitHub Pages: **https://sfweber.github.io/ots-dashboard/**
-*(ajustá la URL a tu usuario/repo de GitHub).*
+▶️ **https://sfweber.github.io/ots-dashboard/**
 
 ## ✨ Qué hace
 
 - **Soltás uno o varios `.ots`** (drag & drop o clic). Cada uno se analiza por separado.
-- **Vista Simple** — infografía: 📄 documento → 🔑 huella → 🔱 caminos (calendars) → 📌 raíz OTS
+- **Vista Simple** — infografía: 📄 documento → 🔑 hash → 🔱 caminos (calendars) → 📌 raíz OTS
   (OP_RETURN) → ⛓️ transacción → ✅ bloque → fecha. Estados ⏳ pendiente / ✅ anclado.
 - **Vista Detallada** — el árbol de Merkle completo: espinazo vertical, pasos agrupados y
   etiquetados por tramo, hitos como "estaciones", caminos colapsables.
@@ -48,7 +47,7 @@ Sobre `https://`, la verificación online anda sin el problema de CORS de `file:
 ## 🧠 Cómo funciona (resumen)
 
 OpenTimestamps prueba que un archivo existía en una fecha, anclándolo en Bitcoin de forma gratuita.
-Tu huella sube por el **árbol de un calendar** (junto a miles de otras) hasta una **raíz OTS**, que
+Tu hash sube por el **árbol de un calendar** (junto a miles de otros) hasta una **raíz OTS**, que
 se graba en el **OP_RETURN** de una transacción; esa transacción es una hoja del **árbol del
 bloque**, cuya *merkle root* queda sellada por la minería. El dashboard reconstruye y dibuja ese
 camino directamente desde el `.ots`, en el navegador.

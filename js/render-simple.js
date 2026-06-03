@@ -1,6 +1,6 @@
 /*
  * render-simple.js — Infografía pedagógica (lenguaje llano) de un OtsModel.
- * Flujo vertical: 📄 documento → 🔑 huella → 🔱 caminos → 📅 calendars/bloques → 📅 resultado.
+ * Flujo vertical: 📄 documento → 🔑 hash → 🔱 caminos → 📅 calendars/bloques → 📅 resultado.
  * Devuelve un nodo DOM. No toca la red (los datos online ya vienen en el modelo si se enriqueció).
  */
 (function (root) {
@@ -32,30 +32,30 @@
       } else {
         children.push(U.el('div', { class: 'match bad' }, [
           U.el('span', null, '❌ El documento NO coincide con este sello'),
-          U.el('div', { class: 'muted small' }, matchedDoc.name + ' — su huella es distinta')
+          U.el('div', { class: 'muted small' }, matchedDoc.name + ' — su hash es distinto')
         ]));
       }
     } else {
       children.push(U.el('div', { class: 'hint-inline' },
-        'Soltá también el documento original (el archivo, no el .ots) para comprobar que su huella coincide.'));
+        'Soltá también el documento original (el archivo, no el .ots) para comprobar que su hash coincide.'));
     }
     return stage('📄', 'El documento', children,
       'OpenTimestamps no prueba el contenido ni el autor: prueba que ESTE archivo exacto existía en una fecha.');
   }
 
   function hashStage(model) {
-    return stage('🔑', 'Su huella (' + (model.hashAlgo || 'sha256').toUpperCase() + ')', [
+    return stage('🔑', 'Su hash (' + (model.hashAlgo || 'sha256').toUpperCase() + ')', [
       U.hexField('Huella', model.fileHash, { head: 16, tail: 12 }),
-      U.el('div', { class: 'muted small' }, 'Una huella única del archivo. Si cambiás una sola coma, cambia por completo.')
-    ], 'El navegador calcula esta huella localmente: tu archivo nunca se sube a ningún lado.');
+      U.el('div', { class: 'muted small' }, 'Un hash único del archivo. Si cambiás una sola coma, cambia por completo.')
+    ], 'El navegador calcula este hash localmente: tu archivo nunca se sube a ningún lado.');
   }
 
   function forkStage(model) {
     var n = model.branches.length;
     return stage('🔱', 'Se registró en ' + n + (n === 1 ? ' camino' : ' caminos'), [
       U.el('div', { class: 'muted small' },
-        'Tu huella se mandó a ' + n + ' servidor(es) "calendar" independientes. Con que UNO llegue a Bitcoin, ya está probado; tener varios es redundancia.')
-    ], 'Cada calendar junta miles de huellas de mucha gente en un árbol y publica una sola transacción en Bitcoin.');
+        'Tu hash se mandó a ' + n + ' servidor(es) "calendar" independientes. Con que UNO llegue a Bitcoin, ya está probado; tener varios es redundancia.')
+    ], 'Cada calendar junta miles de hashes de mucha gente en un árbol y publica una sola transacción en Bitcoin.');
   }
 
   function statusPill(branch) {
@@ -91,7 +91,7 @@
   function treeButton(model, otsRoot) {
     if (!otsRoot || !root.OtsTree) return null;
     var det = U.el('details', { class: 'tree-viz' });
-    det.appendChild(U.el('summary', null, '¿Cómo llega tu huella a esta raíz?'));
+    det.appendChild(U.el('summary', null, '¿Cómo llega tu hash a esta raíz?'));
     var lazy = false;
     det.addEventListener('toggle', function () {
       if (det.open && !lazy) { lazy = true; det.appendChild(root.OtsTree.render(model, otsRoot)); }
@@ -111,7 +111,7 @@
       if (branch.otsRoot) {
         rows.push(U.el('div', {
           class: 'ots-root',
-          title: 'Es lo único que OpenTimestamps graba en Bitcoin: la raíz de su árbol, dentro del OP_RETURN de la transacción. Tu huella sube por el árbol hasta acá.'
+          title: 'Es lo único que OpenTimestamps graba en Bitcoin: la raíz de su árbol, dentro del OP_RETURN de la transacción. Tu hash sube por el árbol hasta acá.'
         }, [
           U.el('div', { class: 'ots-root-label' }, '📌 Raíz OTS — grabada en Bitcoin (OP_RETURN)'),
           U.el('div', { class: 'field' }, [
