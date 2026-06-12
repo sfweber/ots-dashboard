@@ -1,8 +1,9 @@
 /*
  * app.js — Orquestador del dashboard.
  * - Espera a que cargue la librería OpenTimestamps.
- * - Drag&drop / file picker (uno o varios archivos).
+ * - Drag&drop / file picker (UN .ots a la vez + opcionalmente su documento original).
  * - Detecta .ots (por magic header) -> parsea -> tarjeta. Otros -> documento -> hash + match.
+ * - Un nuevo .ots reemplaza el análisis anterior (documento incluido).
  * - Toggle global de vista Simple/Detallado.
  * - Botón por tarjeta "Verificar contra Bitcoin" (enriquecimiento online).
  */
@@ -87,22 +88,53 @@
     state.items.forEach(renderCardBody);
   }
 
-  function clearAll() {
+  function resetAnalysis() {
     state.items = [];
     state.docs = [];
     dom.results.innerHTML = '';
+  }
+
+  function clearAll() {
+    resetAnalysis();
     refreshChrome();
   }
 
   // ---- manejo de archivos ----
+  // Se analiza UN .ots a la vez: del lote soltado se toma el primer .ots y el
+  // primer documento (no-.ots); el resto se ignora con aviso.
   function handleFiles(fileList) {
-    Array.prototype.forEach.call(fileList, function (file) {
-      readArrayBuffer(file).then(function (buf) {
-        if (isOtsBuffer(buf)) addOts(file, buf);
-        else addDoc(file, buf);
+    var files = Array.prototype.slice.call(fileList);
+    Promise.all(files.map(function (file) {
+      return readArrayBuffer(file).then(function (buf) {
+        return { file: file, buf: buf };
       }).catch(function (err) {
         addError(file.name, 'No se pudo leer el archivo: ' + err.message);
+        return null;
       });
+    })).then(function (read) {
+      var ots = null, doc = null, extraOts = 0, extraDocs = 0;
+      read.forEach(function (r) {
+        if (!r) return;
+        if (isOtsBuffer(r.buf)) {
+          if (!ots) ots = r; else extraOts++;
+        } else {
+          if (!doc) doc = r; else extraDocs++;
+        }
+      });
+      // un solo toast combinado (reemplazo + ignorados), para que no se pisen
+      var msgs = [];
+      if (ots && state.items.length > 0) msgs.push('Análisis anterior reemplazado.');
+      if (extraOts || extraDocs) {
+        var parts = [];
+        if (extraOts) parts.push(extraOts + ' .ots');
+        if (extraDocs) parts.push(extraDocs + ' documento(s)');
+        msgs.push('Se analiza un .ots a la vez: se ignoraron ' + parts.join(' y ') + ' extra.');
+      }
+      if (msgs.length) toast(msgs.join(' '));
+      // Primero el .ots (puede resetear el análisis anterior); después el doc,
+      // cuyo re-match actualiza la tarjeta ya renderizada.
+      if (ots) addOts(ots.file, ots.buf);
+      if (doc) addDoc(doc.file, doc.buf);
     });
   }
 
@@ -133,6 +165,9 @@
       addError(file.name, err.message);
       return;
     }
+    // Un .ots a la vez: el nuevo reemplaza el análisis anterior (y su documento).
+    // El aviso al usuario lo da handleFiles (toast combinado).
+    if (state.items.length > 0) resetAnalysis();
     var item = { id: ++state.seq, model: model, matchedDoc: null, verifying: false, card: null };
     // ¿ya teníamos el documento original?
     var doc = findDocForHash(model.fileHash);
@@ -145,7 +180,17 @@
   function addDoc(file, buf) {
     root.OtsHash.sha256Hex(buf).then(function (hex) {
       hex = hex.toLowerCase();
-      state.docs.push({ name: file.name, hash: hex });
+      // Un documento a la vez: el nuevo reemplaza al anterior.
+      var replaced = state.docs.length > 0;
+      state.docs = [{ name: file.name, hash: hex }];
+      if (replaced) toast('Documento anterior reemplazado.');
+      // si la tarjeta tenía match con el doc viejo, recalcular
+      state.items.forEach(function (item) {
+        if (item.matchedDoc && item.model.fileHash && item.model.fileHash.toLowerCase() !== hex) {
+          item.matchedDoc = null;
+          renderCardBody(item);
+        }
+      });
       // actualizar tarjetas que matcheen
       var matchedAny = false;
       state.items.forEach(function (item) {
@@ -172,9 +217,18 @@
 
   // ---- tarjetas ----
   function statusBadge(model) {
-    if (model.status === 'confirmed') return U.el('span', { class: 'badge confirmed' }, '✅ Confirmado');
-    if (model.status === 'partial') return U.el('span', { class: 'badge partial' }, '🟡 Parcial');
-    return U.el('span', { class: 'badge pending' }, '⏳ Pendiente');
+    var badge, tipText;
+    if (model.status === 'confirmed') {
+      badge = U.el('span', { class: 'badge confirmed' }, '✅ Confirmado');
+      tipText = 'Todos los caminos del sello ya están anclados en Bitcoin.';
+    } else if (model.status === 'partial') {
+      badge = U.el('span', { class: 'badge partial' }, '🟡 Parcial');
+      tipText = 'Al menos un camino llegó a Bitcoin — con uno alcanza para probar la fecha; el resto es redundancia.';
+    } else {
+      badge = U.el('span', { class: 'badge pending' }, '⏳ Pendiente');
+      tipText = 'Ningún camino llegó a Bitcoin todavía: la prueba depende de los calendars hasta que se confirme.';
+    }
+    return U.el('span', { class: 'pill-wrap' }, [badge, U.tip(tipText, { align: 'left' })]);
   }
 
   function buildCard(item) {
@@ -190,7 +244,11 @@
         U.el('span', { class: 'card-name' }, item.model.fileName || 'archivo.ots'),
         U.el('span', { class: 'muted small' }, U.humanSize(item.model.fileSizeBytes))
       ]),
-      U.el('div', { class: 'card-actions' }, [statusBadge(item.model), verifyBtn])
+      U.el('div', { class: 'card-actions' }, [
+        statusBadge(item.model),
+        verifyBtn,
+        U.tip('Consulta mempool.space (o blockstream.info como respaldo) para traer el bloque real y comparar su merkle root con la que afirma el .ots. Solo se envía el número de bloque: tu archivo nunca sale de tu navegador.', { align: 'left' })
+      ])
     ]);
 
     var body = U.el('div', { class: 'card-body' });

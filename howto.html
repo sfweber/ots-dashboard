@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verificación manual — Analizador de OpenTimestamps</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <h1>Verificalo <span class="brand-dot">vos mismo</span></h1>
+      <p class="sub">Cómo comprobar un sello OpenTimestamps a mano, con un explorador de bloques — sin confiar en esta herramienta.</p>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+
+      <a class="howto-back" href="index.html">← Volver al analizador</a>
+
+      <section class="card howto">
+        <div class="card-body">
+
+          <div class="stage">
+            <div class="stage-head">
+              <span class="stage-icon">🧐</span>
+              <span class="stage-title">Don't trust, verify</span>
+            </div>
+            <div class="stage-body">
+              <p>El botón <b>«Verificar contra Bitcoin»</b> del analizador hace esta comprobación por vos. Pero el punto de Bitcoin es que <b>no necesitás confiar en nadie</b> — ni en esta página. Acá vas a hacer exactamente la misma verificación a mano, mirando la cadena con tus propios ojos.</p>
+              <div id="ctx-banner" class="hint-inline" hidden>
+                Esta guía ya tiene cargados <b>los valores de tu sello</b> (vienen del análisis que abriste). Si llegaste sin contexto, seguí los pasos con los valores que muestra el analizador.
+              </div>
+            </div>
+          </div>
+
+          <ol class="steps">
+
+            <li class="stage">
+              <div class="stage-head">
+                <span class="stage-icon">🧱</span>
+                <span class="stage-title">Encontrá el bloque</span>
+              </div>
+              <div class="stage-body">
+                <p>En la tarjeta del analizador, dentro de cada camino anclado, está el campo <b>Bloque</b>: el número del bloque de Bitcoin donde quedó grabada la prueba.</p>
+                <p class="param-line">Tu bloque: <span class="mono param" data-param="block">el número que muestra el analizador</span></p>
+                <figure class="shot placeholder" id="shot-1">
+                  <figcaption>📷 Captura pendiente: tarjeta del analizador con un .ots confirmado, señalando los campos <b>Bloque</b>, <b>Transacción</b> y <b>Merkle root</b>.</figcaption>
+                </figure>
+              </div>
+            </li>
+
+            <li class="stage">
+              <div class="stage-head">
+                <span class="stage-icon">🌐</span>
+                <span class="stage-title">Abrí el bloque en un explorador</span>
+              </div>
+              <div class="stage-body">
+                <p>Un <b>explorador de bloques</b> es un sitio que te deja mirar la cadena de Bitcoin. Entrá a:</p>
+                <p class="mono url-line"><a id="block-link" href="https://mempool.space" target="_blank" rel="noopener">https://mempool.space/block/<span class="param" data-param="block">‹altura del bloque›</span></a></p>
+                <p class="muted small">También sirve <a id="block-link-alt" href="https://blockstream.info" target="_blank" rel="noopener">blockstream.info</a> — el procedimiento es el mismo. No dependas de UN solo explorador: si dos sitios independientes muestran lo mismo, mejor. Y lo ideal: tu propio nodo.</p>
+              </div>
+            </li>
+
+            <li class="stage">
+              <div class="stage-head">
+                <span class="stage-icon">🌳</span>
+                <span class="stage-title">Ubicá el campo «Merkle Root»</span>
+              </div>
+              <div class="stage-body">
+                <p>En los detalles del bloque vas a ver un campo llamado <b>Merkle Root</b>: es el resumen criptográfico de TODAS las transacciones de ese bloque. Si una sola transacción cambiara, la merkle root cambiaría por completo.</p>
+                <figure class="shot placeholder" id="shot-2">
+                  <figcaption>📷 Captura pendiente: página de mempool.space del bloque, con el campo <b>Merkle Root</b> resaltado.</figcaption>
+                </figure>
+              </div>
+            </li>
+
+            <li class="stage">
+              <div class="stage-head">
+                <span class="stage-icon">⚖️</span>
+                <span class="stage-title">Comparala con la del analizador</span>
+              </div>
+              <div class="stage-body">
+                <p>El analizador muestra el campo <b>Merkle root</b> en cada camino anclado: es lo que el .ots <i>afirma</i>. Compará ese valor con el que acabás de ver en el explorador. <b>Si coinciden, el sello es auténtico</b>: el camino desde tu documento hasta ese bloque cierra matemáticamente.</p>
+                <p class="param-line">Según tu .ots: <span class="mono param" data-param="merkle">la merkle root que muestra el analizador</span></p>
+                <div class="bytes-box">
+                  <div class="h">👀 Ojo con el orden de los bytes</div>
+                  <p>Bitcoin muestra los hashes en un orden, y el archivo .ots a veces guarda el mismo número <b>al revés, de a pares de caracteres</b> (byte por byte). Si no coincide a simple vista, leelo de a pares desde el final: es el mismo número escrito al revés. La verificación automática del analizador tolera ambas orientaciones — ahora sabés por qué.</p>
+                  <div id="merkle-both" hidden>
+                    <p class="muted small">Tu merkle root, en las dos orientaciones posibles:</p>
+                    <p class="mono small param-line"><span class="param" data-param="merkle"></span><br><span class="param" data-param="merkle-rev"></span></p>
+                  </div>
+                </div>
+                <figure class="shot placeholder" id="shot-3">
+                  <figcaption>📷 Captura pendiente: comparación lado a lado de la merkle root del analizador vs. la de mempool.space (ideal: un caso byte-reversed, con los pares marcados).</figcaption>
+                </figure>
+              </div>
+            </li>
+
+            <li class="stage">
+              <div class="stage-head">
+                <span class="stage-icon">🔎</span>
+                <span class="stage-title">Opcional: mirá la transacción</span>
+              </div>
+              <div class="stage-body">
+                <p>Dentro del bloque hay UNA transacción que transporta la prueba: en su <b>OP_RETURN</b> viaja la <b>Raíz OTS</b> (la raíz del árbol de OpenTimestamps, que también muestra el analizador).</p>
+                <p class="mono url-line" id="tx-line" hidden><a id="tx-link" href="https://mempool.space" target="_blank" rel="noopener">https://mempool.space/tx/<span class="param" data-param="txid"></span></a></p>
+                <figure class="shot placeholder" id="shot-4">
+                  <figcaption>📷 Captura pendiente (opcional): la transacción en mempool.space mostrando el <b>OP_RETURN</b> con la raíz OTS.</figcaption>
+                </figure>
+              </div>
+            </li>
+
+          </ol>
+
+          <div class="stage">
+            <div class="stage-head">
+              <span class="stage-icon">🏁</span>
+              <span class="stage-title">Qué acabás de probar</span>
+            </div>
+            <div class="stage-body">
+              <p>Verificaste la fecha de tu documento <b>sin confiar en este sitio, ni en los calendars de OpenTimestamps, ni siquiera en mempool.space</b> (podés repetir esto contra tu propio nodo de Bitcoin). La fecha está respaldada por el trabajo acumulado de toda la red: para falsificarla habría que rehacer la cadena desde ese bloque.</p>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <a class="howto-back" href="index.html">← Volver al analizador</a>
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      Herramienta educativa por <strong>Federico Weber</strong> · parsea <code>.ots</code> en el navegador con
+      <a href="https://opentimestamps.org" target="_blank" rel="noopener">OpenTimestamps</a> ·
+      verificación contra <a href="https://mempool.space" target="_blank" rel="noopener">mempool.space</a>
+    </div>
+  </footer>
+
+  <script src="js/howto.js"></script>
+</body>
+</html>

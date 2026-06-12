@@ -17,11 +17,13 @@
   <main>
     <div class="container">
 
-      <div id="dropzone" class="dropzone disabled" title="Soltá o elegí archivos .ots">
+      <div id="dropzone" class="dropzone disabled">
         <div class="dz-icon">📥</div>
-        <div class="dz-title">Soltá tus archivos <code>.ots</code> acá</div>
-        <div class="dz-sub">o hacé clic para elegirlos. Podés soltar <b>varios</b> a la vez.</div>
-        <div class="dz-sub small">Opcional: soltá también el <b>documento original</b> para comprobar que su hash coincide.</div>
+        <div class="dz-title">Soltá tu archivo <code>.ots</code> acá
+          <button class="tip" type="button" aria-label="Ayuda">ⓘ<span class="tip-pop">Un .ots no contiene tu documento: es solo la prueba criptográfica de en qué fecha existía. Todo se analiza en tu navegador, sin subir nada.</span></button>
+        </div>
+        <div class="dz-sub">o hacé clic para elegirlo. Se analiza <b>un .ots a la vez</b>: el nuevo reemplaza al anterior.</div>
+        <div class="dz-sub small">Opcional: soltá también el <b>documento original</b> (juntos o por separado) para comprobar que su hash coincide.</div>
         <input type="file" id="file-input" multiple style="display:none">
       </div>
       <div id="lib-status">Cargando librerías…</div>
@@ -32,6 +34,9 @@
           <div class="hint-card"><div class="h">🌳 Dos vistas</div><div class="d">Simple (infografía) y Detallado (el árbol de Merkle completo).</div></div>
           <div class="hint-card"><div class="h">⛓️ Verificable</div><div class="d">Confirmá contra Bitcoin y copiá los IDs para chequear en mempool.space.</div></div>
         </div>
+        <div class="howto-cta">
+          <a class="howto-link" href="howto.html">📖 Guía: cómo verificar un sello a mano, con un explorador de bloques</a>
+        </div>
       </div>
 
       <div id="toolbar" class="toolbar" style="display:none">
@@ -39,6 +44,7 @@
           <button id="view-simple" class="active" type="button">Simple</button>
           <button id="view-detailed" type="button">Detallado</button>
         </div>
+        <button class="tip" type="button" aria-label="Ayuda">ⓘ<span class="tip-pop">Simple: infografía paso a paso. Detallado: todas las operaciones del árbol de Merkle, como el comando <code>ots info</code>.</span></button>
         <div class="spacer"></div>
         <button id="btn-clear" class="btn ghost" type="button">🗑️ Limpiar</button>
       </div>
@@ -54,7 +60,8 @@
     <div class="container">
       Herramienta educativa por <strong>Federico Weber</strong> · parsea <code>.ots</code> en el navegador con
       <a href="https://opentimestamps.org" target="_blank" rel="noopener">OpenTimestamps</a> ·
-      verificación contra <a href="https://mempool.space" target="_blank" rel="noopener">mempool.space</a>
+      verificación contra <a href="https://mempool.space" target="_blank" rel="noopener">mempool.space</a> ·
+      <a href="howto.html">guía de verificación manual</a>
     </div>
   </footer>
 

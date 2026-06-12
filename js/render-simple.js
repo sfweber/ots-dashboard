@@ -11,7 +11,7 @@
     var head = root.OtsUtil.el('div', { class: 'stage-head' }, [
       U.el('span', { class: 'stage-icon' }, icon),
       U.el('span', { class: 'stage-title' }, title),
-      tip ? U.el('span', { class: 'tip', title: tip }, 'ⓘ') : null
+      tip ? U.tip(tip) : null
     ]);
     return U.el('div', { class: 'stage' }, [head, U.el('div', { class: 'stage-body' }, bodyChildren)]);
   }
@@ -59,9 +59,18 @@
   }
 
   function statusPill(branch) {
-    if (branch.kind === 'pending') return U.el('span', { class: 'pill pending' }, '⏳ Pendiente');
-    if (branch.kind === 'unknown') return U.el('span', { class: 'pill unknown' }, '？ Desconocido');
-    return U.el('span', { class: 'pill confirmed' }, '✅ Anclado · bloque ' + branch.blockHeight);
+    var pill, tipText;
+    if (branch.kind === 'pending') {
+      pill = U.el('span', { class: 'pill pending' }, '⏳ Pendiente');
+      tipText = 'El calendar todavía no publicó esta rama en Bitcoin. Suele resolverse en unas horas; después podés actualizar el .ots con "ots upgrade".';
+    } else if (branch.kind === 'unknown') {
+      pill = U.el('span', { class: 'pill unknown' }, '？ Desconocido');
+      tipText = 'El .ots declara un anclaje en una cadena que esta herramienta no reconoce.';
+    } else {
+      pill = U.el('span', { class: 'pill confirmed' }, '✅ Anclado · bloque ' + branch.blockHeight);
+      tipText = 'Este camino ya llegó a Bitcoin: hay una transacción en ese bloque que contiene la raíz del árbol de OpenTimestamps.';
+    }
+    return U.el('span', { class: 'pill-wrap' }, [pill, U.tip(tipText, { align: 'left' })]);
   }
 
   function onlineArea(branch) {
@@ -74,8 +83,10 @@
     if (branch.online === 'ok') {
       var date = root.OtsMempool ? root.OtsMempool.formatDate(branch.blockTime) : null;
       var match = branch.merkleMatches
-        ? U.el('div', { class: 'verdict ok', title: 'La merkle root del bloque que afirma el .ots coincide con la del bloque real en la cadena.' }, '✅ Confirmado contra el bloque real de Bitcoin')
-        : U.el('div', { class: 'verdict bad' }, '⚠️ No coincide con el bloque real de Bitcoin');
+        ? U.el('div', { class: 'verdict ok' }, ['✅ Confirmado contra el bloque real de Bitcoin ',
+            U.tip('La merkle root que afirma el .ots coincide con la del bloque real en la cadena: nadie pudo falsificar esa fecha.', { align: 'left' })])
+        : U.el('div', { class: 'verdict bad' }, ['⚠️ No coincide con el bloque real de Bitcoin ',
+            U.tip('El bloque real tiene otra merkle root: el .ots afirma algo que la cadena no respalda. Puede ser un archivo corrupto o adulterado.', { align: 'left' })]);
       return U.el('div', { class: 'online ok' }, [
         date ? U.el('div', { class: 'date' }, '📅 ' + date) : null,
         match
@@ -99,6 +110,17 @@
     return det;
   }
 
+  // Link a la guía de verificación manual, con los valores de ESTA rama
+  // por query params para que el paso a paso muestre "tus números".
+  function howtoLink(branch) {
+    var qs = 'block=' + encodeURIComponent(branch.blockHeight);
+    if (branch.merkleRoot) qs += '&merkle=' + encodeURIComponent(branch.merkleRoot);
+    if (branch.txid) qs += '&txid=' + encodeURIComponent(branch.txid);
+    return U.el('a', {
+      class: 'howto-link', href: 'howto.html?' + qs, target: '_blank', rel: 'noopener'
+    }, '📖 ¿Cómo verificarlo vos mismo?');
+  }
+
   function branchCard(branch, model) {
     var rows = [
       U.el('div', { class: 'branch-top' }, [
@@ -109,11 +131,9 @@
     if (branch.kind !== 'pending' && branch.blockHeight != null) {
       // ⭐ Lo más importante: la raíz del árbol de OTS, que es lo ÚNICO que se graba en Bitcoin.
       if (branch.otsRoot) {
-        rows.push(U.el('div', {
-          class: 'ots-root',
-          title: 'Es lo único que OpenTimestamps graba en Bitcoin: la raíz de su árbol, dentro del OP_RETURN de la transacción. Tu hash sube por el árbol hasta acá.'
-        }, [
-          U.el('div', { class: 'ots-root-label' }, '📌 Raíz OTS — grabada en Bitcoin (OP_RETURN)'),
+        rows.push(U.el('div', { class: 'ots-root' }, [
+          U.el('div', { class: 'ots-root-label' }, ['📌 Raíz OTS — grabada en Bitcoin (OP_RETURN) ',
+            U.tip('Es lo único que OpenTimestamps graba en Bitcoin: la raíz de su árbol, dentro del OP_RETURN de la transacción. Tu hash sube por el árbol hasta acá.', { align: 'left' })]),
           U.el('div', { class: 'field' }, [
             U.el('a', {
               class: 'mono', href: U.mempoolTxUrl(branch.txid), target: '_blank', rel: 'noopener',
@@ -125,8 +145,18 @@
         var tb = treeButton(model, branch.otsRoot);
         if (tb) rows.push(tb);
       }
-      rows.push(U.hexField('Bloque', String(branch.blockHeight), { href: U.mempoolBlockUrl(branch.blockHeight), head: 12, tail: 12 }));
-      if (branch.txid) rows.push(U.hexField('Transacción', branch.txid, { href: U.mempoolTxUrl(branch.txid) }));
+      rows.push(U.hexField('Bloque', String(branch.blockHeight), {
+        href: U.mempoolBlockUrl(branch.blockHeight), head: 12, tail: 12,
+        tip: 'El número del bloque de Bitcoin donde quedó grabada la prueba. Cada bloque tiene fecha y hora: de ahí sale el sello de tiempo. Tocá el número para verlo en mempool.space.'
+      }));
+      if (branch.txid) rows.push(U.hexField('Transacción', branch.txid, {
+        href: U.mempoolTxUrl(branch.txid),
+        tip: 'La transacción de Bitcoin que transporta la prueba: en su OP_RETURN viaja la raíz OTS. Tocá el ID para verla en mempool.space.'
+      }));
+      if (branch.merkleRoot) rows.push(U.hexField('Merkle root', branch.merkleRoot, {
+        tip: 'La merkle root del bloque, según el .ots. Es el valor que podés comparar a mano con el campo "Merkle Root" en mempool.space: si coincide, el sello es auténtico. Esto mismo es lo que automatiza el botón Verificar.'
+      }));
+      rows.push(howtoLink(branch));
     }
     rows.push(onlineArea(branch));
     return U.el('div', { class: 'branch ' + branch.kind }, rows);

@@ -53,6 +53,26 @@
   function mempoolBlockUrl(height) { return 'https://mempool.space/block/' + height; }
   function mempoolTxUrl(txid) { return 'https://mempool.space/tx/' + txid; }
 
+  // Ícono de ayuda ⓘ con popover CSS-only (hover en desktop, tap/focus en touch).
+  // Es un <button> para ser focuseable; el stopPropagation evita que dispare
+  // clicks de contenedores (p.ej. el dropzone abre el file picker).
+  function tip(text, opts) {
+    opts = opts || {};
+    var pop = el('span', { class: 'tip-pop' + (opts.align === 'left' ? ' left' : '') }, text);
+    var btn = el('button', { class: 'tip', type: 'button', 'aria-label': 'Ayuda' }, ['ⓘ', pop]);
+    btn.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); });
+    return btn;
+  }
+
+  // Los .tip escritos en HTML estático también necesitan el stopPropagation.
+  function wireStaticTips() {
+    Array.prototype.forEach.call(document.querySelectorAll('button.tip'), function (btn) {
+      btn.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); });
+    });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wireStaticTips);
+  else wireStaticTips();
+
   // Botón de copiar al portapapeles con feedback visual.
   function copyBtn(getText, titleText) {
     var b = el('button', { class: 'copy-btn', title: titleText || 'Copiar', type: 'button' }, '⧉');
@@ -107,7 +127,8 @@
     return el('div', { class: 'field' }, [
       el('span', { class: 'field-label' }, label),
       valNode,
-      copyBtn(function () { return value; }, 'Copiar ' + label)
+      copyBtn(function () { return value; }, 'Copiar ' + label),
+      opts.tip ? tip(opts.tip, { align: 'left' }) : null
     ]);
   }
 
@@ -121,6 +142,7 @@
   root.OtsUtil = {
     el: el, append: append, shortHex: shortHex, calendarName: calendarName,
     mempoolBlockUrl: mempoolBlockUrl, mempoolTxUrl: mempoolTxUrl,
-    copyBtn: copyBtn, hexField: hexField, humanSize: humanSize, doCopy: doCopy
+    copyBtn: copyBtn, hexField: hexField, humanSize: humanSize, doCopy: doCopy,
+    tip: tip
   };
 })(typeof window !== 'undefined' ? window : globalThis);

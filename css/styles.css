@@ -130,7 +130,25 @@ main { padding: 26px 0 80px; }
 }
 .stage-title { font-weight: 700; font-size: 1.06rem; }
 .stage-body { margin: 8px 0 0 44px; }
-.tip { cursor: help; color: var(--indigo); font-size: .9rem; border: 1px solid #d7d9f5; border-radius: 50%; width: 18px; height: 18px; display: inline-grid; place-items: center; }
+/* ---------- tips de ayuda (ⓘ + popover CSS-only) ---------- */
+.tip {
+  cursor: help; color: var(--indigo); font-size: .9rem; border: 1px solid #d7d9f5;
+  border-radius: 50%; width: 18px; height: 18px; display: inline-grid; place-items: center;
+  /* reset de button */
+  position: relative; background: none; padding: 0; font-family: inherit; line-height: 1;
+  vertical-align: middle; flex: 0 0 auto;
+}
+.tip:hover, .tip:focus { border-color: var(--indigo); outline: none; }
+.tip-pop {
+  display: none; position: absolute; z-index: 30; top: 130%; left: 50%; transform: translateX(-50%);
+  width: max-content; max-width: min(320px, 80vw);
+  background: var(--ink); color: #fff; font-size: .85rem; font-weight: 400; text-align: left;
+  padding: 9px 12px; border-radius: 9px; box-shadow: var(--shadow); cursor: auto;
+  white-space: normal; line-height: 1.45;
+}
+.tip-pop code { color: #ffe2a8; background: none; font-size: .85em; }
+.tip-pop.left { left: auto; right: -6px; transform: none; }
+.tip:hover .tip-pop, .tip:focus .tip-pop, .tip:focus-within .tip-pop { display: block; }
 
 .doc-name { font-weight: 600; }
 .match { margin-top: 8px; padding: 10px 12px; border-radius: 10px; font-weight: 600; }
@@ -159,6 +177,7 @@ a.mono:hover { text-decoration: underline; }
 .branch.unknown { border-left: 4px solid var(--muted); }
 .branch-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
 .cal-name { font-weight: 700; }
+.pill-wrap { display: inline-flex; align-items: center; gap: 6px; }
 .pill { font-size: .8rem; font-weight: 700; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
 .pill.pending { background: var(--amber-bg); color: var(--amber); }
 .pill.confirmed { background: var(--green-bg); color: var(--green); }
@@ -312,6 +331,44 @@ details.tree-viz > summary::before { content: "🌳"; }
 /* ---------- footer ---------- */
 .site-footer { color: var(--muted); font-size: .85rem; text-align: center; padding: 20px; }
 .site-footer a { color: var(--indigo); }
+
+/* ---------- howto: link desde el análisis ---------- */
+.howto-link {
+  display: inline-block; margin-top: 8px; font-size: .85rem; font-weight: 600;
+  color: var(--indigo); text-decoration: none; background: #f0f2fb;
+  border: 1px solid #d7d9f5; border-radius: 999px; padding: 4px 12px;
+}
+.howto-link:hover { background: #e4e7fa; border-color: var(--indigo); }
+.howto-cta { text-align: center; margin-top: 18px; }
+.howto-cta .howto-link { font-size: .95rem; padding: 8px 18px; }
+
+/* ---------- howto.html: guía de verificación manual ---------- */
+.howto-back {
+  display: inline-block; margin: 4px 0 14px; color: var(--indigo);
+  text-decoration: none; font-weight: 600;
+}
+.howto-back:hover { text-decoration: underline; }
+.card.howto { margin-top: 4px; }
+.steps { list-style: none; margin: 0; padding: 0; counter-reset: paso; }
+.steps > li.stage { counter-increment: paso; }
+.steps > li.stage .stage-title::before { content: "Paso " counter(paso) " — "; color: var(--indigo); }
+.param-line { background: #f6f7fb; border-radius: 8px; padding: 8px 10px; overflow-wrap: anywhere; }
+.param { color: var(--muted); font-style: italic; }
+.param.filled { color: var(--indigo-d); font-style: normal; font-weight: 600; }
+.url-line { overflow-wrap: anywhere; }
+.bytes-box {
+  margin: 12px 0; padding: 12px 14px; border-radius: 10px;
+  background: var(--amber-bg); border: 1px solid #f3d9b0;
+}
+.bytes-box .h { font-weight: 700; color: var(--amber); margin-bottom: 4px; }
+figure.shot { margin: 14px 0; }
+figure.shot img { max-width: 100%; border: 1px solid var(--line); border-radius: 10px; box-shadow: var(--shadow); }
+figure.shot figcaption { font-size: .85rem; color: var(--muted); margin-top: 6px; }
+figure.shot.placeholder {
+  border: 2px dashed #b9c0d4; border-radius: 10px; padding: 26px 18px;
+  text-align: center; color: var(--muted); background: #fafbff;
+}
+figure.shot.placeholder figcaption { margin-top: 0; }
 
 /* ---------- responsive / proyector ---------- */
 @media (min-width: 1100px) { body { font-size: 18px; } }
