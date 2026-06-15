@@ -116,6 +116,7 @@
     var qs = 'block=' + encodeURIComponent(branch.blockHeight);
     if (branch.merkleRoot) qs += '&merkle=' + encodeURIComponent(branch.merkleRoot);
     if (branch.txid) qs += '&txid=' + encodeURIComponent(branch.txid);
+    if (branch.otsRoot) qs += '&otsroot=' + encodeURIComponent(branch.otsRoot);
     return U.el('a', {
       class: 'howto-link', href: 'howto.html?' + qs, target: '_blank', rel: 'noopener'
     }, '📖 ¿Cómo verificarlo vos mismo?');
@@ -153,8 +154,8 @@
         href: U.mempoolTxUrl(branch.txid),
         tip: 'La transacción de Bitcoin que transporta la prueba: en su OP_RETURN viaja la raíz OTS. Tocá el ID para verla en mempool.space.'
       }));
-      if (branch.merkleRoot) rows.push(U.hexField('Merkle root', branch.merkleRoot, {
-        tip: 'La merkle root del bloque, según el .ots. Es el valor que podés comparar a mano con el campo "Merkle Root" en mempool.space: si coincide, el sello es auténtico. Esto mismo es lo que automatiza el botón Verificar.'
+      if (branch.merkleRoot) rows.push(U.hexField('Merkle root del bloque', branch.merkleRoot, {
+        tip: 'Es lo que recalculás desde el .ots y enfrentás al header del bloque real: la ruta para verificar sin nodo y sin confiar en un explorador. Si coincide con el campo "Merkle Root" del bloque en mempool.space, el sello es auténtico. Es lo que automatiza el botón Verificar.'
       }));
       rows.push(howtoLink(branch));
     }

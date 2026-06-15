@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Verificación manual — Analizador de OpenTimestamps</title>
+  <title>Verificación de un sello — Analizador de OpenTimestamps</title>
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
   <header class="site-header">
     <div class="container">
-      <h1>Verificalo <span class="brand-dot">vos mismo</span></h1>
-      <p class="sub">Cómo comprobar un sello OpenTimestamps a mano, con un explorador de bloques — sin confiar en esta herramienta.</p>
+      <h1>Verificación <span class="brand-dot">independiente</span></h1>
+      <p class="sub">Tres procedimientos para comprobar manualmente un sello OpenTimestamps. Se distinguen por el grado de confianza que requieren y por el agente en quien esta se deposita.</p>
     </div>
   </header>
 
@@ -22,105 +22,164 @@
       <section class="card howto">
         <div class="card-body">
 
+          <!-- ===================== PREÁMBULO ===================== -->
           <div class="stage">
             <div class="stage-head">
-              <span class="stage-icon">🧐</span>
-              <span class="stage-title">Don't trust, verify</span>
+              <span class="stage-icon">📂</span>
+              <span class="stage-title">Contenido del archivo <code>.ots</code></span>
             </div>
             <div class="stage-body">
-              <p>El botón <b>«Verificar contra Bitcoin»</b> del analizador hace esta comprobación por vos. Pero el punto de Bitcoin es que <b>no necesitás confiar en nadie</b> — ni en esta página. Acá vas a hacer exactamente la misma verificación a mano, mirando la cadena con tus propios ojos.</p>
+              <p>El respaldo se compone de dos archivos: el <b>documento</b> y su archivo <b><code>.ots</code></b>. Este último <b>no contiene el documento</b>, sino la prueba criptográfica: el hash del archivo, la cadena de operaciones que asciende por el árbol de agregación del <i>calendar</i> hasta la <b>Raíz OTS</b>, la <b>transacción</b> en la que dicha raíz quedó registrada y el camino de Merkle que la vincula con el <b>bloque N</b>.</p>
+              <div class="spine">
+                documento → <span class="muted">(árbol del calendar)</span> → <b>Raíz OTS</b> → registrada en el <b>OP_RETURN</b> de una transacción → incluida en el <b>bloque N</b>
+              </div>
+              <p>El archivo <code>.ots</code> puede inspeccionarse directamente mediante el comando <code>ots info archivo.ots</code>, que expone exactamente esta información. El analizador <b>no incorpora datos adicionales</b>: se limita a presentar ese contenido mediante una interfaz más legible. En consecuencia, la totalidad de los valores mostrados puede contrastarse con el contenido del propio archivo. Estos son los valores del sello:</p>
+              <div class="cmp">
+                <div class="cmp-label">Contenido del <code>.ots</code> (presentado por el analizador)</div>
+                <div class="cmp-row"><span class="cmp-tag">Raíz OTS</span><span class="mono cmp-val param" data-param="otsroot">valor mostrado por el analizador</span></div>
+                <div class="cmp-row"><span class="cmp-tag">Transacción</span><span class="mono cmp-val param" data-param="txid">identificador mostrado por el analizador</span></div>
+                <div class="cmp-row"><span class="cmp-tag">Bloque</span><span class="mono cmp-val param" data-param="block">número mostrado por el analizador</span></div>
+              </div>
               <div id="ctx-banner" class="hint-inline" hidden>
-                Esta guía ya tiene cargados <b>los valores de tu sello</b> (vienen del análisis que abriste). Si llegaste sin contexto, seguí los pasos con los valores que muestra el analizador.
+                Esta guía ya tiene cargados <b>los valores del sello analizado</b>. De haberse accedido sin ese contexto, sígase el procedimiento con los valores que muestra el analizador.
+              </div>
+              <p>Hay <b>una sola cosa que el <code>.ots</code> no contiene</b>: la prueba de que el bloque N es real. Su <i>attestation</i> guarda únicamente la <b>altura</b> del bloque —un número—; que esa altura corresponda a un bloque verdadero, dotado de prueba de trabajo, lo aporta Bitcoin a través de su <b>cabecera de 80 bytes</b>. El <code>.ots</code> es, por tanto, una prueba <b>condicional</b>: «<i>si</i> el bloque N posee determinada raíz de Merkle, <i>entonces</i> el documento existía cuando dicho bloque fue minado». Comprobarlo consiste en satisfacer esa condición consultando la cabecera real del bloque:</p>
+              <div class="spine"><b>Verificación = <code>.ots</code> (la prueba) + cabecera del bloque (el ancla)</b></div>
+              <p>Los <b>tres procedimientos</b> que siguen obtienen esa cabecera, y confían en ella, de maneras distintas; por ello <b>certifican la misma fecha</b> y se diferencian únicamente en el agente sobre el que recae la confianza: un explorador, el nodo propio, o exclusivamente la matemática aplicada sobre la cabecera. Los tres son <b>igualmente válidos</b>; la elección depende del contexto y del grado de soberanía deseado.</p>
+            </div>
+          </div>
+
+          <!-- ===================== SOLAPAS ===================== -->
+          <div class="toggle howto-tabs" role="group" aria-label="Nivel de confianza">
+            <button type="button" data-tab="simple" class="active">① Con explorador</button>
+            <button type="button" data-tab="nodo">② Con nodo propio</button>
+            <button type="button" data-tab="sinconfiar">③ Sin nodo propio</button>
+          </div>
+
+          <!-- ---------- SOLAPA 1: CON EXPLORADOR ---------- -->
+          <div class="tab-panel" data-panel="simple">
+
+            <div class="stage">
+              <div class="stage-head"><span class="stage-icon">①</span><span class="stage-title">Obtención de los valores del sello</span></div>
+              <div class="stage-body">
+                <p>La Raíz OTS, la transacción y el bloque provienen del analizador (consignados más arriba). De manera equivalente, el archivo <code>.ots</code> puede inspeccionarse con <code>ots info</code>, donde figura la misma información.</p>
+                <p class="trust-inline">Confianza requerida: el <b>analizador</b> (o, en su defecto, el cotejo con el archivo original).</p>
+                <figure class="shot" id="shot-1">
+                  <img src="assets/howto/shot1-analizador.png" alt="Tarjeta del analizador con un sello anclado: estado Anclado bloque 951157, Raíz OTS, Bloque, Transacción y Merkle root del bloque.">
+                  <figcaption>Tarjeta del analizador para un camino anclado (bloque 951157), con la <b>Raíz OTS</b>, el <b>Bloque</b> y la <b>Transacción</b>.</figcaption>
+                </figure>
+              </div>
+            </div>
+
+            <div class="stage">
+              <div class="stage-head"><span class="stage-icon">②</span><span class="stage-title">Apertura de la transacción en el explorador</span></div>
+              <div class="stage-body">
+                <p>Acceda a la transacción en mempool.space (o en blockstream.info):</p>
+                <p class="mono url-line" id="tx-line"><a id="tx-link" href="https://mempool.space" target="_blank" rel="noopener">https://mempool.space/tx/<span class="param" data-param="txid">‹identificador de la transacción›</span></a></p>
+                <p>Identifique el bloque que contiene la transacción y su marca temporal: esa es la fecha que el sello certifica.</p>
+                <p class="trust-inline">Confianza requerida: el <b>explorador</b> (la existencia de la transacción, su inclusión en el bloque y la validez de este).</p>
+              </div>
+            </div>
+
+            <div class="stage">
+              <div class="stage-head"><span class="stage-icon">③</span><span class="stage-title">Localización de la Raíz OTS en el OP_RETURN</span></div>
+              <div class="stage-body">
+                <p>Entre las salidas de la transacción figura una de tipo <b>OP_RETURN</b> (no transfiere fondos: 0 BTC; únicamente registra datos). A continuación de los bytes <span class="mono">6a20</span> se hallan los <b>32 bytes de la Raíz OTS</b>. Cotéjense con el valor que muestra el analizador:</p>
+                <div class="cmp">
+                  <div class="cmp-label">Raíz OTS</div>
+                  <div class="cmp-row"><span class="cmp-tag">Analizador (según el .ots)</span><span class="mono cmp-val param" data-param="otsroot">050c59e0…dddda4ef</span></div>
+                  <div class="cmp-row"><span class="cmp-tag">OP_RETURN de la transacción (en la cadena)</span><span class="mono cmp-val param" data-param="otsroot">050c59e0…dddda4ef</span></div>
+                  <div class="cmp-note">Si ambos valores coinciden, el compromiso (<i>commitment</i>) se encuentra registrado en la cadena: el documento quedó vinculado a Bitcoin a través de esa transacción.</div>
+                </div>
+                <p class="trust-inline">Confianza requerida: el <b>explorador</b> (para leer el OP_RETURN); la Raíz OTS procede del analizador o del archivo <code>.ots</code>.</p>
+                <p class="muted small">En este procedimiento la confianza recae por completo en el explorador: él afirma que el bloque es real y que la transacción está incluida; la inspección del OP_RETURN es la parte que puede verse directamente. Los procedimientos ② y ③ sustituyen esa afirmación por una comprobación propia de la misma ancla —la cabecera del bloque—.</p>
+                <figure class="shot" id="shot-4">
+                  <img src="assets/howto/shot4-opreturn.png" alt="Entradas y salidas de la transacción en el explorador, con el output OP_RETURN resaltado.">
+                  <figcaption>Salidas de la transacción: el <i>output</i> <b>OP_RETURN</b> transporta la Raíz OTS. No transfiere fondos (0 BTC).</figcaption>
+                </figure>
               </div>
             </div>
           </div>
 
-          <ol class="steps">
+          <!-- ---------- SOLAPA 2: CON NODO PROPIO ---------- -->
+          <div class="tab-panel" data-panel="nodo" hidden>
+            <div class="trust-box t-node">
+              <div class="h">¿Sobre quién recae la confianza?</div>
+              <p>Únicamente sobre el <b>nodo propio</b>. No se requiere confiar en ningún servicio externo: el nodo ya descargó y validó la totalidad de la cadena (prueba de trabajo, raíces de Merkle y cada transacción). Constituye la opción de mayor soberanía.</p>
+            </div>
 
-            <li class="stage">
-              <div class="stage-head">
-                <span class="stage-icon">🧱</span>
-                <span class="stage-title">Encontrá el bloque</span>
-              </div>
+            <div class="stage">
+              <div class="stage-head"><span class="stage-icon">🖥️</span><span class="stage-title">Verificación contra el nodo propio</span></div>
               <div class="stage-body">
-                <p>En la tarjeta del analizador, dentro de cada camino anclado, está el campo <b>Bloque</b>: el número del bloque de Bitcoin donde quedó grabada la prueba.</p>
-                <p class="param-line">Tu bloque: <span class="mono param" data-param="block">el número que muestra el analizador</span></p>
-                <figure class="shot placeholder" id="shot-1">
-                  <figcaption>📷 Captura pendiente: tarjeta del analizador con un .ots confirmado, señalando los campos <b>Bloque</b>, <b>Transacción</b> y <b>Merkle root</b>.</figcaption>
-                </figure>
-              </div>
-            </li>
-
-            <li class="stage">
-              <div class="stage-head">
-                <span class="stage-icon">🌐</span>
-                <span class="stage-title">Abrí el bloque en un explorador</span>
-              </div>
-              <div class="stage-body">
-                <p>Un <b>explorador de bloques</b> es un sitio que te deja mirar la cadena de Bitcoin. Entrá a:</p>
-                <p class="mono url-line"><a id="block-link" href="https://mempool.space" target="_blank" rel="noopener">https://mempool.space/block/<span class="param" data-param="block">‹altura del bloque›</span></a></p>
-                <p class="muted small">También sirve <a id="block-link-alt" href="https://blockstream.info" target="_blank" rel="noopener">blockstream.info</a> — el procedimiento es el mismo. No dependas de UN solo explorador: si dos sitios independientes muestran lo mismo, mejor. Y lo ideal: tu propio nodo.</p>
-              </div>
-            </li>
-
-            <li class="stage">
-              <div class="stage-head">
-                <span class="stage-icon">🌳</span>
-                <span class="stage-title">Ubicá el campo «Merkle Root»</span>
-              </div>
-              <div class="stage-body">
-                <p>En los detalles del bloque vas a ver un campo llamado <b>Merkle Root</b>: es el resumen criptográfico de TODAS las transacciones de ese bloque. Si una sola transacción cambiara, la merkle root cambiaría por completo.</p>
-                <figure class="shot placeholder" id="shot-2">
-                  <figcaption>📷 Captura pendiente: página de mempool.space del bloque, con el campo <b>Merkle Root</b> resaltado.</figcaption>
-                </figure>
-              </div>
-            </li>
-
-            <li class="stage">
-              <div class="stage-head">
-                <span class="stage-icon">⚖️</span>
-                <span class="stage-title">Comparala con la del analizador</span>
-              </div>
-              <div class="stage-body">
-                <p>El analizador muestra el campo <b>Merkle root</b> en cada camino anclado: es lo que el .ots <i>afirma</i>. Compará ese valor con el que acabás de ver en el explorador. <b>Si coinciden, el sello es auténtico</b>: el camino desde tu documento hasta ese bloque cierra matemáticamente.</p>
-                <p class="param-line">Según tu .ots: <span class="mono param" data-param="merkle">la merkle root que muestra el analizador</span></p>
+                <p>En un equipo que ejecute <b>Bitcoin Core</b> (resulta suficiente; no se requieren índices ni servicios adicionales), instálese el cliente de OpenTimestamps y, disponiendo del documento original junto a su archivo <code>.ots</code>, ejecútese:</p>
+                <pre class="cmd">ots verify archivo.ots</pre>
+                <p>El cliente solicita al nodo, a través de su interfaz RPC, la <b>cabecera del bloque</b> correspondiente, recalcula la prueba y devuelve un resultado de la forma:</p>
+                <pre class="cmd">Success! Bitcoin block <span class="param" data-param="block">N</span> attests existence as of 2025-…</pre>
+                <p>El nodo es la única fuente consultada: no se recurre a mempool ni a ningún tercero.</p>
                 <div class="bytes-box">
-                  <div class="h">👀 Ojo con el orden de los bytes</div>
-                  <p>Bitcoin muestra los hashes en un orden, y el archivo .ots a veces guarda el mismo número <b>al revés, de a pares de caracteres</b> (byte por byte). Si no coincide a simple vista, leelo de a pares desde el final: es el mismo número escrito al revés. La verificación automática del analizador tolera ambas orientaciones — ahora sabés por qué.</p>
+                  <div class="h">¿Por qué funciona incluso con un nodo <i>pruned</i>?</div>
+                  <p>La verificación <b>no consulta el OP_RETURN en la cadena</b>: la transacción —con la Raíz OTS en su OP_RETURN— está contenida en el propio archivo <code>.ots</code>, que el cliente reconstruye internamente. Lo único que solicita al nodo es la <b>cabecera del bloque</b> (80 bytes), para cotejar la raíz de Merkle recalculada con <code>header.merkleroot</code>. Un nodo <i>pruned</i> descarta los bloques antiguos, pero <b>conserva todas las cabeceras</b>; por ello basta para una verificación <b>completa</b>. La coincidencia de la raíz de Merkle prueba, por sí sola, que esa transacción —y su OP_RETURN— está incluida en el bloque: la inspección del OP_RETURN en el explorador (procedimiento ①) es un cotejo visual complementario, no un requisito de la comprobación criptográfica.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ---------- SOLAPA 3: SIN NODO PROPIO ---------- -->
+          <div class="tab-panel" data-panel="sinconfiar" hidden>
+            <div class="trust-box t-math">
+              <div class="h">¿Sobre quién recae la confianza?</div>
+              <p>El procedimiento de <b>menor confianza posible en ausencia de un nodo propio</b>. El nodo (procedimiento ②) constituye el ideal, al no requerir terceros. Aquí, sin disponer de un nodo, la comprobación matemática y la prueba de trabajo se realizan de manera independiente. Lo único que se solicita a un tercero es la <b>cabecera de 80 bytes</b> del bloque, de tamaño mínimo. Conviene obtenerla de <b>varias fuentes independientes y comprobar que coinciden</b>: por ejemplo, dos exploradores distintos (<a href="https://mempool.space" target="_blank" rel="noopener">mempool.space</a> y <a href="https://blockstream.info" target="_blank" rel="noopener">blockstream.info</a>), el <b>nodo de un tercero de confianza</b> (un conocido, un servicio comunitario) o una instancia pública de <i>Esplora</i>. La cabecera cruda puede descargarse incluso por API: <code>GET /api/block/&lt;hash&gt;/header</code>.</p>
+            </div>
+
+            <div class="stage">
+              <div class="stage-head"><span class="stage-icon">🌿</span><span class="stage-title">El archivo .ots contiene el camino de Merkle</span></div>
+              <div class="stage-body">
+                <p>El archivo <code>.ots</code> <b>no</b> contiene las demás transacciones del bloque, sino únicamente la docena de <b>hashes «hermanos»</b> del camino (un bloque de aproximadamente 4.000 transacciones requiere alrededor de 12 hashes, no 4.000). Con la transacción propia y esos hashes se recalcula la <b>raíz de Merkle del bloque</b>, en su totalidad sin conexión y sin descargar el bloque completo.</p>
+                <p>Obsérvese que este procedimiento adquiere sentido una vez verificado, mediante el procedimiento ①, que el OP_RETURN propio se halla en dicho bloque. Aquí se demuestra que ese bloque es auténtico <b>sin recurrir a la confianza en un explorador</b>: el cálculo se efectúa de manera independiente.</p>
+              </div>
+            </div>
+
+            <div class="stage">
+              <div class="stage-head"><span class="stage-icon">⚖️</span><span class="stage-title">Cotejo con la raíz de Merkle del bloque</span></div>
+              <div class="stage-body">
+                <p>Ábrase el bloque y obsérvese su campo <b>Merkle Root</b> (el resumen criptográfico de la totalidad de sus transacciones):</p>
+                <p class="mono url-line"><a id="block-link" href="https://mempool.space" target="_blank" rel="noopener">https://mempool.space/block/<span class="param" data-param="block">‹altura›</span></a> · <a id="block-link-alt" href="https://blockstream.info" target="_blank" rel="noopener">blockstream.info</a></p>
+                <div class="cmp">
+                  <div class="cmp-label">Raíz de Merkle del bloque</div>
+                  <div class="cmp-row"><span class="cmp-tag">Analizador (recalculada del .ots)</span><span class="mono cmp-val param" data-param="merkle">ebeb8a20…dca11462</span></div>
+                  <div class="cmp-row"><span class="cmp-tag">Explorador / cabecera del bloque</span><span class="mono cmp-val param" data-param="merkle">ebeb8a20…dca11462</span></div>
+                  <div class="cmp-note"><b>Por qué la comparación no es circular:</b> la raíz de Merkle del lado del analizador se computó a partir del archivo propio, sin conexión, antes de cualquier consulta a la red. Que coincida con la del bloque real demuestra que el documento se halla, con certeza criptográfica, dentro de ese bloque.</div>
+                </div>
+                <div class="bytes-box">
+                  <div class="h">Nota sobre el orden de los bytes (<i>endianness</i>)</div>
+                  <p>En ocasiones el archivo <code>.ots</code> almacena la raíz de Merkle en orden inverso, byte a byte. Si los valores no coinciden a primera vista, léase uno de ellos por pares de caracteres, de derecha a izquierda: se trata del mismo número en orden invertido. La verificación automática admite ambas orientaciones.</p>
                   <div id="merkle-both" hidden>
-                    <p class="muted small">Tu merkle root, en las dos orientaciones posibles:</p>
+                    <p class="muted small">La raíz de Merkle, en sus dos orientaciones posibles:</p>
                     <p class="mono small param-line"><span class="param" data-param="merkle"></span><br><span class="param" data-param="merkle-rev"></span></p>
                   </div>
                 </div>
-                <figure class="shot placeholder" id="shot-3">
-                  <figcaption>📷 Captura pendiente: comparación lado a lado de la merkle root del analizador vs. la de mempool.space (ideal: un caso byte-reversed, con los pares marcados).</figcaption>
+                <figure class="shot" id="shot-2">
+                  <img src="assets/howto/shot2-merkle-root.png" alt="Detalles del bloque en el explorador, con el campo Raíz de Merkle resaltado.">
+                  <figcaption>Detalles del bloque en el explorador: el campo <b>Raíz de Merkle</b> objeto del cotejo.</figcaption>
                 </figure>
               </div>
-            </li>
-
-            <li class="stage">
-              <div class="stage-head">
-                <span class="stage-icon">🔎</span>
-                <span class="stage-title">Opcional: mirá la transacción</span>
-              </div>
-              <div class="stage-body">
-                <p>Dentro del bloque hay UNA transacción que transporta la prueba: en su <b>OP_RETURN</b> viaja la <b>Raíz OTS</b> (la raíz del árbol de OpenTimestamps, que también muestra el analizador).</p>
-                <p class="mono url-line" id="tx-line" hidden><a id="tx-link" href="https://mempool.space" target="_blank" rel="noopener">https://mempool.space/tx/<span class="param" data-param="txid"></span></a></p>
-                <figure class="shot placeholder" id="shot-4">
-                  <figcaption>📷 Captura pendiente (opcional): la transacción en mempool.space mostrando el <b>OP_RETURN</b> con la raíz OTS.</figcaption>
-                </figure>
-              </div>
-            </li>
-
-          </ol>
-
-          <div class="stage">
-            <div class="stage-head">
-              <span class="stage-icon">🏁</span>
-              <span class="stage-title">Qué acabás de probar</span>
             </div>
-            <div class="stage-body">
-              <p>Verificaste la fecha de tu documento <b>sin confiar en este sitio, ni en los calendars de OpenTimestamps, ni siquiera en mempool.space</b> (podés repetir esto contra tu propio nodo de Bitcoin). La fecha está respaldada por el trabajo acumulado de toda la red: para falsificarla habría que rehacer la cadena desde ese bloque.</p>
+
+            <div class="stage">
+              <div class="stage-head"><span class="stage-icon">🧱</span><span class="stage-title">Sobre la confianza en la cabecera del bloque</span></div>
+              <div class="stage-body">
+                <p>No se confía en ella: se la comprueba. El identificador del bloque (su prueba de trabajo) es el <b>doble SHA-256 de estos 80 bytes</b>; al calcularlo se constata que cumple el objetivo de dificultad. En esos mismos 80 bytes figuran la raíz de Merkle (campo 3) y la marca temporal (campo 4):</p>
+                <div class="cmp">
+                  <div class="cmp-label">Cabecera del bloque — 80 bytes</div>
+                  <div class="cmp-row"><span class="cmp-tag">1 · versión</span><span class="cmp-val">4 bytes</span></div>
+                  <div class="cmp-row"><span class="cmp-tag">2 · hash del bloque anterior</span><span class="cmp-val">32 bytes — encadenamiento</span></div>
+                  <div class="cmp-row"><span class="cmp-tag">3 · raíz de Merkle</span><span class="cmp-val">32 bytes — valor cotejado</span></div>
+                  <div class="cmp-row"><span class="cmp-tag">4 · marca temporal</span><span class="cmp-val">4 bytes — la fecha</span></div>
+                  <div class="cmp-row"><span class="cmp-tag">5 · bits / objetivo</span><span class="cmp-val">4 bytes — la dificultad</span></div>
+                  <div class="cmp-row"><span class="cmp-tag">6 · nonce</span><span class="cmp-val">4 bytes — campo modificado por el minero</span></div>
+                  <div class="cmp-note">No es necesario que un tercero garantice la existencia de la prueba de trabajo: se verifica calculando el hash de los 80 bytes. Por ello este procedimiento no requiere descargar el bloque completo ni un nodo propio: basta la cabecera (80 bytes), obtenible de las fuentes indicadas más arriba.</div>
+                </div>
+              </div>
             </div>
           </div>
 

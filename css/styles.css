@@ -44,6 +44,13 @@ body {
 .container { max-width: 980px; margin: 0 auto; padding: 0 20px; }
 .site-header h1 { margin: 0; font-size: 1.7rem; letter-spacing: -.01em; }
 .site-header .sub { margin: 6px 0 0; opacity: .9; font-size: 1rem; }
+.header-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.header-howto {
+  flex: 0 0 auto; background: #fff; border: 1px solid #fff;
+  color: var(--indigo-d); text-decoration: none; font-weight: 700; font-size: .95rem;
+  padding: 10px 18px; border-radius: 10px; white-space: nowrap; box-shadow: var(--shadow);
+}
+.header-howto:hover { background: #eef0fb; }
 .brand-dot { color: var(--btc); }
 
 main { padding: 26px 0 80px; }
@@ -339,8 +346,6 @@ details.tree-viz > summary::before { content: "🌳"; }
   border: 1px solid #d7d9f5; border-radius: 999px; padding: 4px 12px;
 }
 .howto-link:hover { background: #e4e7fa; border-color: var(--indigo); }
-.howto-cta { text-align: center; margin-top: 18px; }
-.howto-cta .howto-link { font-size: .95rem; padding: 8px 18px; }
 
 /* ---------- howto.html: guía de verificación manual ---------- */
 .howto-back {
@@ -369,6 +374,30 @@ figure.shot.placeholder {
   text-align: center; color: var(--muted); background: #fafbff;
 }
 figure.shot.placeholder figcaption { margin-top: 0; }
+.cmp { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.cmp-label { background: #f0f2fb; color: var(--indigo-d); font-weight: 700; font-size: .85rem; padding: 7px 12px; }
+.cmp-row { display: flex; flex-direction: column; gap: 3px; padding: 9px 12px; border-top: 1px solid var(--line); }
+.cmp-tag { font-size: .78rem; color: var(--muted); font-weight: 600; }
+.cmp-val { font-size: .85rem; overflow-wrap: anywhere; }
+.cmp-note { padding: 10px 12px; border-top: 1px solid var(--line); background: var(--amber-bg); font-size: .9rem; line-height: 1.45; }
+
+/* ---------- howto: solapas (niveles de confianza) ---------- */
+.howto-tabs { display: flex; width: 100%; margin: 18px 0 6px; }
+.howto-tabs button { flex: 1; padding: 11px 8px; text-align: center; font-weight: 600; }
+.tab-panel { padding-top: 6px; }
+.spine { background: #f6f7fb; border-radius: 8px; padding: 11px 13px; margin: 6px 0 12px; line-height: 1.7; font-size: .95rem; }
+.trust-box { margin: 6px 0 18px; padding: 11px 14px; border-radius: 10px; border: 1px solid var(--line); background: #f6f7fb; }
+.trust-box .h { font-weight: 700; margin-bottom: 2px; }
+.trust-box p { margin: 4px 0 0; }
+.trust-box.t-explorer { background: var(--blue-bg); border-color: #cdd9f5; }
+.trust-box.t-explorer .h { color: var(--blue); }
+.trust-box.t-node { background: var(--green-bg); border-color: #b9e6c9; }
+.trust-box.t-node .h { color: var(--green); }
+.trust-box.t-math { background: #f0f2fb; border-color: #d7d9f5; }
+.trust-box.t-math .h { color: var(--indigo); }
+.trust-inline { font-size: .88rem; color: var(--muted); background: #f6f7fb; border-left: 3px solid var(--indigo); border-radius: 0 7px 7px 0; padding: 7px 11px; margin: 8px 0; }
+pre.cmd { background: var(--ink); color: #e8eaf6; padding: 10px 12px; border-radius: 8px; overflow-x: auto; font-family: var(--mono); font-size: .85rem; margin: 8px 0; }
+pre.cmd .param.filled { color: #ffe2a8; }
 
 /* ---------- responsive / proyector ---------- */
 @media (min-width: 1100px) { body { font-size: 18px; } }
