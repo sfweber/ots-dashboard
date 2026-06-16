@@ -215,6 +215,21 @@ a.mono:hover { text-decoration: underline; }
 .result.bad { background: var(--red-bg); }
 .result.bad .big { font-size: 1.18rem; font-weight: 800; color: var(--red); margin-bottom: 2px; }
 
+/* ---------- veredicto en lenguaje llano (banner arriba de la vista Simple) ---------- */
+.verdict-banner { padding: 16px 18px; border-radius: 12px; margin-bottom: 20px; border-left: 6px solid var(--line); }
+.verdict-banner .big { font-size: 1.18rem; font-weight: 800; margin-bottom: 4px; line-height: 1.32; }
+.verdict-banner .vb-sub { line-height: 1.5; }
+.verdict-banner .vb-redund { margin-top: 8px; }
+.verdict-banner .howto-link { margin-top: 12px; }
+.verdict-banner.confirmed { background: var(--green-bg); border-left-color: var(--green); }
+.verdict-banner.confirmed .big { color: var(--green); }
+.verdict-banner.claim { background: #eef1f7; border-left-color: var(--indigo); }
+.verdict-banner.claim .big { color: var(--ink); }
+.verdict-banner.pending { background: var(--amber-bg); border-left-color: var(--amber); }
+.verdict-banner.pending .big { color: #8a5a00; }
+.verdict-banner.bad { background: var(--red-bg); border-left-color: var(--red); }
+.verdict-banner.bad .big { color: var(--red); }
+
 /* ---------- detailed view: tree (lista vertical con espinazo) ---------- */
 .detailed-view { font-size: .94rem; padding-top: 6px; }
 .tree-start { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }

@@ -170,55 +170,88 @@
     ], 'Cada camino termina en una transacción de Bitcoin (✅) o sigue esperando en el calendar (⏳).');
   }
 
-  function resultStage(model) {
-    var children = [];
-    var blk = model.earliestBlock;
-    if (model.status === 'pending') {
-      children.push(U.el('div', { class: 'result pending' },
-        '⏳ Todavía sin anclar en Bitcoin. La prueba existe pero depende de los calendars hasta que se confirme (suele tardar unas horas).'));
-    } else {
-      var earliest = model.branches.filter(function (b) { return b.blockHeight === blk; })[0];
-      var online = earliest && earliest.online;
-      var date = (online === 'ok' && root.OtsMempool) ? root.OtsMempool.formatDate(earliest.blockTime) : null;
-      var msg = date
-        ? 'Queda probado que el documento ya existía el ' + date + ', en el bloque ' + blk + '.'
-        : 'Queda probado que el documento ya existía al minarse el bloque ' + blk + '.';
+  function anchoredBranches(model) {
+    return model.branches.filter(function (b) {
+      return b.kind !== 'pending' && b.kind !== 'unknown' && b.blockHeight != null;
+    });
+  }
 
-      if (online === 'ok' && earliest.merkleMatches) {
-        // verificado contra la cadena
-        children.push(U.el('div', { class: 'result confirmed' }, [
-          U.el('div', { class: 'big' }, '✅ Verificado en Bitcoin'),
-          U.el('div', null, msg),
-          model.status === 'partial' ? U.el('div', { class: 'muted small' }, 'Alcanza con una rama anclada; las demás siguen pendientes.') : null
-        ]));
-      } else if (online === 'ok' && !earliest.merkleMatches) {
-        // se verificó pero NO coincide
-        children.push(U.el('div', { class: 'result bad' }, [
-          U.el('div', { class: 'big' }, '⚠️ No coincide con Bitcoin'),
-          U.el('div', null, 'La merkle root del .ots no coincide con la del bloque ' + blk + ' real: el sello no se pudo confirmar.')
-        ]));
-      } else {
-        // aún NO verificado contra la cadena → es una afirmación del archivo, sin tilde verde
-        children.push(U.el('div', { class: 'result claim' }, [
-          U.el('div', { class: 'big' }, 'Anclado en el bloque ' + blk + ' — según el .ots'),
-          U.el('div', null, 'El archivo afirma que el documento ya existía cuando se minó el bloque ' + blk + '.'),
-          U.el('div', { class: 'muted small' }, 'Todavía sin comprobar contra la cadena. Pulsá "Verificar contra Bitcoin" para confirmarlo y traer la fecha real.')
-        ]));
-      }
+  // Puntero al howto, con el texto del banner.
+  function verdictHowto(branch) {
+    var link = howtoLink(branch);
+    link.textContent = '📖 ¿Verificarlo vos mismo? — Cómo verificar un sello';
+    return link;
+  }
+
+  // Veredicto en lenguaje llano, arriba de todo. Cambia de "afirma" (con el bloque)
+  // a "verificado" (con la fecha real) cuando se pulsa Verificar contra Bitcoin:
+  // la fecha NO está en el .ots, vive en Bitcoin — el flujo enseña eso.
+  function verdictBanner(model) {
+    var anchored = anchoredBranches(model);
+
+    // sin anclar todavía
+    if (anchored.length === 0) {
+      return U.el('div', { class: 'verdict-banner pending' }, [
+        U.el('div', { class: 'big' }, '⏳ Este archivo .ots todavía no contiene una prueba en Bitcoin'),
+        U.el('div', { class: 'vb-sub' },
+          'Lo que ves es el contenido del archivo: por ahora solo guarda el comprobante de un calendar (que recibió tu hash), no una prueba anclada en un bloque. Por sí solo, este archivo no demuestra que haya nada en la cadena. El sello en Bitcoin puede existir o no; cuando el calendar lo ancle, al actualizar el archivo (con "ots upgrade") va a contener el bloque y su fecha.')
+      ]);
     }
-    return stage('🏁', 'Qué prueba', children,
-      'La fecha probada es la del bloque MÁS ANTIGUO anclado: es la fecha más temprana que se puede demostrar. Los bloques posteriores son redundancia, no una fecha "mejor".');
+
+    var blk = model.earliestBlock;
+    var earliest = anchored.filter(function (b) { return b.blockHeight === blk; })[0] || anchored[0];
+    var redundant = anchored.length > 1;
+    var online = earliest.online;
+    var date = (online === 'ok' && root.OtsMempool) ? root.OtsMempool.formatDate(earliest.blockTime) : null;
+    var redundTip = 'La fecha probada es la del bloque MÁS ANTIGUO anclado: la más temprana que se puede demostrar. Los bloques posteriores son redundancia, no una fecha "mejor".';
+
+    // verificado, NO coincide
+    if (online === 'ok' && !earliest.merkleMatches) {
+      return U.el('div', { class: 'verdict-banner bad' }, [
+        U.el('div', { class: 'big' }, '⚠️ No coincide con Bitcoin'),
+        U.el('div', { class: 'vb-sub' },
+          'La merkle root del .ots no coincide con la del bloque #' + blk + ' real: el sello no se pudo confirmar (archivo corrupto o adulterado).')
+      ]);
+    }
+
+    var children = [];
+    var stateClass;
+
+    if (online === 'ok' && earliest.merkleMatches) {
+      // verificado OK → ahora SÍ tenemos la fecha
+      stateClass = 'confirmed';
+      children.push(U.el('div', { class: 'big' }, '✅ Verificado contra Bitcoin'));
+      children.push(U.el('div', { class: 'vb-sub' },
+        'Queda probado que tu documento ya existía el ' + date + ' —anclado en el bloque #' + blk + ' de Bitcoin—. Nadie puede falsificar esa fecha.'));
+      if (redundant) children.push(U.el('div', { class: 'vb-redund muted small' }, [
+        'El sello es redundante: llegó por ' + anchored.length + ' caminos; se toma el primero que se minó (#' + blk + ', el ' + date + '). ',
+        U.tip(redundTip, { align: 'left' })
+      ]));
+    } else {
+      // claim: tenemos el bloque, pero la fecha vive en Bitcoin
+      stateClass = 'claim';
+      children.push(U.el('div', { class: 'big' }, '📄 Este archivo .ots afirma —de forma unilateral— que tu documento ya existía'));
+      children.push(U.el('div', { class: 'vb-sub' },
+        'Lo ancla al bloque #' + blk + ' de Bitcoin, pero por ahora es solo la palabra del archivo: la fecha real vive en Bitcoin, no en el .ots. Tocá "Verificar contra Bitcoin" para confirmarlo y ver la hora exacta.'));
+      if (redundant) children.push(U.el('div', { class: 'vb-redund muted small' }, [
+        'Llegó por ' + anchored.length + ' caminos independientes; con uno alcanza. Cuenta el más antiguo: bloque #' + blk + '. ',
+        U.tip(redundTip, { align: 'left' })
+      ]));
+    }
+
+    children.push(verdictHowto(earliest));
+    return U.el('div', { class: 'verdict-banner ' + stateClass }, children);
   }
 
   // model -> nodo DOM de la vista Simple.
   function render(model, opts) {
     opts = opts || {};
     return U.el('div', { class: 'simple-view' }, [
+      verdictBanner(model),
       docStage(model, opts.matchedDoc),
       hashStage(model),
       forkStage(model),
-      calendarsStage(model),
-      resultStage(model)
+      calendarsStage(model)
     ]);
   }
 
